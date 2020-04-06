@@ -27,7 +27,7 @@ npm install express-simple-routes --save
 ## Usage
 
 ```javascript
-const express = require("express")
+const express = require('express')
 const routes = require('express-simple-routes')
 const app = express()
 
@@ -38,13 +38,51 @@ routes(app, [options])
         console.log('🚀 Server ready')
     })
 ```
-
-Simple Routes: `[options]`
-
+### Application
+#### routes(expressInstance, [options])
 | Property | Description | Type | Default |
 | --- | --- | --- | --- |
 | routes | This is used to determine the directories | Array | `["src/routes"]` |
 | ignore | Controls which files get ignored | Array | `[]`
+
+### Methods
+#### authenticate([authMiddleware]), optional
+| Property | Description | Type | Default |
+| --- | --- | --- | --- |
+| authMiddleware | This controls whether or not a user is allowed to view content and provides user context into your [handler] | Function | null |
+
+##### Examples
+Middleware (`authMiddleware.js`)
+```javascript
+module.exports = authMiddleware = async (token) => {
+    if (!isValidToken(token)) {
+        // ..
+    }
+    return User.getByToken(token)
+};
+```
+Entry point (`index.js`)
+```javascript
+const autMiddleware = require('authMiddleware')
+
+route(app, [options])
+    .authenticate(authMiddleware)
+```
+***
+#### validate(), required
+```javascript
+route(app, [options])
+    .validate()
+```
+***
+#### listen([port], [expressCallback]), required
+```javascript
+route(app, [options])
+    .validate()
+    .listen(1234, () => {
+        console.log('Yay the server started with all our routes!')          
+    })
+```
 
 ## Author
 
