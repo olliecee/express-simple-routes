@@ -64,7 +64,7 @@ module.exports = [
     },
     {
         method: 'POST',
-        url: '/example',
+        url: '/example/auth',
         auth: true,
         handler: (req, res, { user }, next) => {
 
