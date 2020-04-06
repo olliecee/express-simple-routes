@@ -11,7 +11,16 @@
   </a>
 </p>
 
-> Simple Routes can use single or multiple directories of routes with optional authentication middleware and filters. 
+> Simple Routes is for creating hassle free routes for your Express application with optional authentication. 
+
+This package has the following features:
+<ul>
+    <li>Get and use all routes in any directory</li>
+    <li>Easily make routes private or public</li>
+    <li>Protect private routes</li>
+    <li>Provide basic authentication via authorization header</li>
+    <li><small>- new -</small> Provide user context for your routes (needs authentication enabled)</li>
+</ul>
 
 ### 🏠 [Homepage](https://github.com/olliecee/express-simple-routes#readme)
 
@@ -87,9 +96,12 @@ module.exports = [
 
 ### Methods
 #### authenticate([authMiddleware]), optional
-| Property | Description | Type | Default |
+This is whats going to allow you to return user context to your routes. You need to create authentication middleware 
+that accepts a Bearer token in the authorization property from the header. 
+
+| Property | Description | Input | Output |
 | --- | --- | --- | --- |
-| authMiddleware | This controls whether or not a user is allowed to view content and provides user context into your [handler] | Function | null |
+| authMiddleware | This controls whether or not a user is allowed to view content and provides user context into your [handler] | token | {User Object} |
 
 ##### Examples
 Middleware (`authMiddleware.js`)
@@ -110,12 +122,15 @@ route(app, [options])
 ```
 ***
 #### validate(), required
+This method call should happen before calling the `listen` method. The `validate` method checks all routes in every module in every directory to see if it is a valid to be used for execution.
+
 ```javascript
 route(app, [options])
     .validate()
 ```
 ***
 #### listen([port], [expressCallback]), required
+This method call should be the last one. It is essentially the Express instance launching the application with our routes.
 ```javascript
 route(app, [options])
     .validate()
