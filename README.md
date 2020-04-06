@@ -45,7 +45,7 @@ routes(app, {
 ```
 
 `src/routes/example.js`
-```
+```javascript
 module.exports = [
     {
         method: 'POST',
