@@ -29,21 +29,61 @@ npm install express-simple-routes --save
 ```javascript
 const express = require('express')
 const routes = require('express-simple-routes')
+const authMiddleware = require('/custom/middleware') // optional
+
 const app = express()
 
-routes(app, [options])
-    .authenticate([authMiddleware]),
+routes(app, {
+    routes: ['src/routes', 'graphql/routes'],
+    ignore: ['index.js']
+})
+    .authenticate(authMiddleware), // optional
     .validate()
     .listen(4000, () => {
         console.log('🚀 Server ready')
     })
 ```
+
+`src/routes/example.js`
+```
+module.exports = [
+    {
+        method: 'POST',
+        url: '/example',
+        auth: false,
+        handler: (req, res, context, next) => {
+            
+            // Non-authenticated route
+            
+            res.json({
+                id: 1,
+                first: 'Ollie',
+                last: 'Cee'
+            })
+        }
+    },
+    {
+        method: 'POST',
+        url: '/example',
+        auth: true,
+        handler: (req, res, { user }, next) => {
+
+            // User context is passed into every route if its 
+            // protected. To protect a route you must have a 
+            // truthy value in auth
+
+            res.send(user)
+        }
+    },
+]
+```
+
 ### Application
 #### routes(expressInstance, [options])
 | Property | Description | Type | Default |
 | --- | --- | --- | --- |
-| routes | This is used to determine the directories | Array | `["src/routes"]` |
-| ignore | Controls which files get ignored | Array | `[]`
+| routes | This is used to obtain all modules in the array of directories you provide | Array | `["src/routes"]` |
+| ignore | Controls which files get ignored in your route directories | Array | `[]`
 
 ### Methods
 #### authenticate([authMiddleware]), optional
@@ -54,7 +94,7 @@ routes(app, [options])
 ##### Examples
 Middleware (`authMiddleware.js`)
 ```javascript
-module.exports = authMiddleware = async (token) => {
+module.exports = authMiddleware(token) {
     if (!isValidToken(token)) {
         // ..
     }
