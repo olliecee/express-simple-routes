@@ -74,7 +74,7 @@ module.exports = [
 
             res.json(user)
         }
-    },
+    }
 ]
 ```
 
