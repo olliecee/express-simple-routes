@@ -72,7 +72,7 @@ module.exports = [
             // protected. To protect a route you must have a 
             // truthy value in auth
 
-            res.send(user)
+            res.json(user)
         }
     },
 ]
