@@ -49,7 +49,7 @@ app
     ignore: ['index.js']
 })
 .listen(4000, () => {
-    console.log('🚀 Server ready');
+    console.log('🚀 Server` ready');
 });
 ```
 
@@ -92,6 +92,8 @@ module.exports = [
 This is whats going to allow you to return user context to your routes. You need to create authentication middleware 
 that accepts a Bearer token in the authorization property from the header. 
 
+This is optional and you can do this with just Express using `app.use()` if you want more customizations.
+
 | Property | Description | Input | Output |
 | --- | --- | --- | --- |
 | authMiddleware | This controls whether or not a user is allowed to view content and provides user context into your [handler] | token | {User Object} |
@@ -101,14 +103,14 @@ Middleware (`authMiddleware.js`)
 ```javascript
 module.exports = authMiddleware(token) {
     if (!isValidToken(token)) {
-        // ..
+        // handle what your app does with an invalid token
     }
     return User.getByToken(token)
 };
 ```
 Entry point (`index.js`)
 ```javascript
-const autMiddleware = require('authMiddleware')
+const authMiddleware = require('authMiddleware')
 
 app.authenticate(authMiddleware)
 ```
@@ -133,7 +135,10 @@ app.routes({
 This method call should be the last one. It is essentially the Express instance launching the application with our routes.
 ```javascript
 app.routes(options)
-   .listen(port, callback)
+   .listen(1234, () => {
+      console.log('You:          Wow, amazing! Is it just this easy?')
+      console.log('SimpleRoutes: Yes, now go build an amazing app!')
+   })
 ```
 
 ## Author
