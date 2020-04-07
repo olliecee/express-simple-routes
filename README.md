@@ -37,20 +37,20 @@ npm install express-simple-routes --save
 
 ```javascript
 const express = require('express')
-const routes = require('express-simple-routes')
+const simple = require('express-simple-routes')
 const authMiddleware = require('/custom/middleware') // optional
 
-const app = express()
+const app = simple(express)
 
-routes(app, {
-    routes: ['src/routes', 'graphql/routes'],
+app
+.authenticate(authMiddleware) // optional
+.routes({
+    paths: ['src/routes', 'graphql/routes'],
     ignore: ['index.js']
 })
-    .authenticate(authMiddleware), // optional
-    .validate()
-    .listen(4000, () => {
-        console.log('🚀 Server ready')
-    })
+.listen(4000, () => {
+    console.log('🚀 Server ready');
+});
 ```
 
 `src/routes/example.js`
@@ -87,13 +87,6 @@ module.exports = [
 ]
 ```
 
-### Application
-#### routes(expressInstance, [options])
-| Property | Description | Type | Default |
-| --- | --- | --- | --- |
-| routes | This is used to obtain all modules in the array of directories you provide | Array | `["src/routes"]` |
-| ignore | Controls which files get ignored in your route directories | Array | `[]`
-
 ### Methods
 #### authenticate([authMiddleware]), optional
 This is whats going to allow you to return user context to your routes. You need to create authentication middleware 
@@ -117,26 +110,30 @@ Entry point (`index.js`)
 ```javascript
 const autMiddleware = require('authMiddleware')
 
-route(app, [options])
-    .authenticate(authMiddleware)
+app.authenticate(authMiddleware)
 ```
 ***
-#### validate(), required
-This method call should happen before calling the `listen` method. The `validate` method checks all routes in every module in every directory to see if it is a valid to be used for execution.
+#### routes([options]), required
+This method call should happen before calling the `listen` method. The `routes` method checks all routes in every module in every directory to see if it is a valid to be used for execution.
 
 ```javascript
-route(app, [options])
-    .validate()
+app.routes({
+    routes: ['src/routes'],
+    ignore: ['index.js']
+})
 ```
+
+| Property | Description | Type | Default |
+| --- | --- | --- | --- |
+| routes | Accepts a list of directories of routes to use with Express | Array[String] | `[]` |
+| ignore | Controls which files get ignored in your route directories | Array[String] | `[]`
+
 ***
 #### listen([port], [expressCallback]), required
 This method call should be the last one. It is essentially the Express instance launching the application with our routes.
 ```javascript
-route(app, [options])
-    .validate()
-    .listen(1234, () => {
-        console.log('Yay the server started with all our routes!')          
-    })
+app.routes(options)
+   .listen(port, callback)
 ```
 
 ## Author
