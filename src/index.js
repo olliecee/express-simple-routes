@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 
 // Lets get rowdy baby
-export default function SimpleRoutes(expressInstance, { routes: routesDirectory = ['src/routes'], ignore = [] }) {
+export default function simple(expressInstance) {
   const METHOD_ENUMS = {
     // This list come directly from Express's supported METHOD list
     CHECKOUT: 'checkout',
@@ -40,15 +40,15 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
     }
   }
 
-  function getAllModulesInPath() {
-    if (routesDirectory instanceof String || typeof routesDirectory === 'string') {
-      const { modulePath, modules } = getModulesByPath(routesDirectory);
+  function getAllModulesInPath(paths) {
+    if (paths instanceof String || typeof paths === 'string') {
+      const { modulePath, modules } = getModulesByPath(paths);
       return [{
         modulePath,
         modules
       }]
     }
-    return routesDirectory.reduce((acc, path) => {
+    return paths.reduce((acc, path) => {
       const { modulePath, modules } = getModulesByPath(path);
       acc.push({
         modulePath,
@@ -58,7 +58,7 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
     }, [])
   }
 
-  function getAllRoutesByModules(modulesPaths) {
+  function getAllRoutesByModules(modulesPaths, ignore) {
     let allRoutes = [];
 
     for (const { modules, modulePath } of modulesPaths) {
@@ -73,6 +73,7 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
         }
         let routes;
 
+        // The import version of this is way too verbose but may be faster to execute. Relies on the job queue.
         routes = require(path.resolve(modulePath, module));
         routes = routeValidator(routes);
 
@@ -83,7 +84,7 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
     return allRoutes
   }
 
-  const routeValidator = function(routes, allowedKeys = ['method', 'url', 'handler', 'auth']) {
+  function routeValidator(routes, allowedKeys = ['method', 'url', 'handler', 'auth']) {
     if (routes.default) {
       routes = routes.default
     }
@@ -109,31 +110,30 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
     }
 
     return filteredRoutes
-  };
+  }
 
   function simpleRoutesAuthenticator(routes) {
     routes.forEach(({ method, url, handler, auth }) => {
-      expressInstance[method](url, function(req, res, next) {
-        if (auth && !req.context.user) {
+      this[method](url, function authCallback(req, res, next) {
+        const user = req.context && req.context.user ? req.context.user : null;
+        const context = new Object(null);
+        context.user = user;
+        delete req.context;
+
+        // Authentication enabled route
+        if (auth && !user) {
           res.send('Authenticated identities only')
-        } else {
-          // To support different kinds of contexts in the future (if need be). Possible 1.5 feature!
-          // const context = { ...req.context };
-          const context = new Object(null);
-          context.user = req.context.user;
-          delete req.context;
-          handler(req, res, context, next);
         }
+
+        handler(req, res, context, next);
       })
     });
   }
 
-  // Public API
-  return {
-    authenticate: function(authenicator) {
-      // Authentication middleware
-      expressInstance.use(function(request, response, next) {
-        let token, context = {
+  return function main() {
+    this.authenticate = function(middleware) {
+      this.use(function(request, response, next) {
+        let user, token, context = {
           user: null
         };
 
@@ -141,8 +141,22 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
           token = request.headers.authorization;
           token = token.replace('Bearer ', '');
 
-          if (token && authenicator) {
-            context.user = authenicator(token);
+          if (token && middleware) {
+            try {
+              user = middleware(token);
+            } catch {
+              user = null;
+              console.error('simple-express-routes: Your authentication middleware threw an error')
+            }
+            if (user instanceof Promise) {
+              middleware
+                .then(result => user = result)
+                .catch(() => {
+                  user = null;
+                  console.error('simple-express-routes: Your authentication middleware returned a promise that failed')
+                })
+            }
+            context.user = user
           }
         }
 
@@ -151,27 +165,21 @@ export default function SimpleRoutes(expressInstance, { routes: routesDirectory 
       });
 
       return this
-    },
-    validate: function(callback) {
+    };
+
+    this.routes = function({ paths = [], ignore = [] }) {
       // Aggregate all modules per path
-      const modules = getAllModulesInPath();
+      const modules = getAllModulesInPath(paths);
 
       // Aggregate all routes per module
-      const routes = getAllRoutesByModules(modules);
+      const routes = getAllRoutesByModules(modules, ignore);
 
       // Protect routes (if specified) and add to the Express instance
-      simpleRoutesAuthenticator(routes);
-
-      if (callback) {
-        callback(routes);
-      }
+      simpleRoutesAuthenticator.call(this, routes);
 
       return this
-    },
-    listen: function(options, callback) {
-      expressInstance.listen.apply(expressInstance, [options, callback]);
+    };
 
-      return this
-    }
-  };
+    return this
+  }.call(expressInstance())
 }
