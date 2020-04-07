@@ -1,7 +1,7 @@
 {
   "name": "express-simple-routes",
   "version": "2.0.2",
-  "description": "Simple Routes can use single or multiple directories of routes with optional authentication middleware and filters",
+  "description": "Simple Routes makes it easy to import all your routes in any directory with optional authentication using Express.js",
   "main": "lib/index.js",
   "scripts": {
     "clean": "rimraf lib",

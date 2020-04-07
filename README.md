@@ -11,7 +11,7 @@
   </a>
 </p>
 
-> Simple Routes is for creating hassle free routes for your Express application with optional authentication. 
+> Simple Routes makes it easy to import all your routes in any directory with optional authentication using Express.js 
 
 This package has the following features:
 <ul>
