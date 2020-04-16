@@ -1,6 +1,6 @@
 {
   "name": "express-simple-routes",
-  "version": "2.0.2",
+  "version": "2.0.5",
   "description": "Simple Routes makes it easy to import all your routes in any directory with optional authentication using Express.js",
   "main": "lib/index.js",
   "scripts": {

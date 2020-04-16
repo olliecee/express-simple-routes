@@ -31,11 +31,10 @@ export default function simple(expressInstance) {
   };
 
   function getModulesByPath(directory) {
-    const modulePath = path.resolve(directory);
-    const modules = fs.readdirSync(modulePath);
+    const modules = fs.readdirSync(directory);
 
     return {
-      modulePath,
+      modulePath: directory,
       modules
     }
   }
