@@ -120,7 +120,7 @@ This method call should happen before calling the `listen` method. The `routes` 
 
 ```javascript
 app.routes({
-    routes: ['src/routes'],
+    routes: [path.resolve(__dirname, 'routes')],
     ignore: ['index.js']
 })
 ```
